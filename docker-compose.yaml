@@ -1,0 +1,29 @@
+services:
+  archivist:
+    build: .
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env
+    depends_on:
+      archive:
+        condition: service_healthy
+  archive:
+    image: postgres:16.0
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    healthcheck:
+      test: "pg_isready --username=searxiv && psql --username=searxiv --list"
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    userns_mode: "keep-id"

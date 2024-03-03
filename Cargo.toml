@@ -1,0 +1,20 @@
+[package]
+name = "archivist"
+description = "Core SearXiv service which manages scrapers tasks"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenvy = "0.15.7"
+log = "0.4.21"
+thiserror = "1.0.57"
+sqlx = { version = "0.7", features = [
+  "postgres",
+  "chrono",
+  "runtime-tokio",
+  "tls-rustls",
+] }
+actix-web = { version = "4.5.1", features = ["rustls"] }
+anyhow = "1.0.80"
+env_logger = "0.11.2"
+chrono = "0.4.34"
