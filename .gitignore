@@ -1,6 +1,7 @@
 .*
 !.*.example
 !.gitignore
+!.github
 !.sqlx
 
 /target
