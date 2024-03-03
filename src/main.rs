@@ -1,17 +1,29 @@
+mod config;
 mod db;
 mod handlers;
 mod models;
 mod routes;
 
 use actix_web::{middleware::Logger, App, HttpServer};
-use env_logger::Env;
+use config::Config;
+use figment::{providers::Env, Figment};
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
+async fn main() -> anyhow::Result<()> {
+    // Load environment variables from .env
+    dotenvy::dotenv()?;
+
+    // Build config by merging environment variables with Config::default()
+    let config: Config = Figment::from(Config::default())
+        .merge(Env::prefixed("ARCHIVIST_"))
+        .extract()?;
+
+    // Initialize logger
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or(config.log_level));
 
     HttpServer::new(|| App::new().configure(routes::routes).wrap(Logger::default()))
-        .bind(("0.0.0.0", 9000))?
+        .bind((config.addr, config.port))?
         .run()
         .await
+        .map_err(|e| e.into())
 }
