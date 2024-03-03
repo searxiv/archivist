@@ -1,8 +1,4 @@
-use actix_web::{
-    get, post,
-    web::{Json, Path},
-    Responder,
-};
+use actix_web::{get, post, web::Path, Responder};
 
 #[utoipa::path(
     responses(
@@ -36,6 +32,6 @@ pub async fn get_status() -> impl Responder {
     ),
 )]
 #[post("/{year}/{month}/{day}")]
-pub async fn post_day_as_task(date: Path<(i32, i32, i32)>) -> impl Responder {
+pub async fn post_day_as_task(_date: Path<(i32, i32, i32)>) -> impl Responder {
     "post_day_as_task is not implemented"
 }

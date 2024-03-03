@@ -34,7 +34,7 @@ pub struct PaperSubject {
     pub subject_id: Id,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, utoipa::ToSchema)]
+#[derive(Clone, Debug)]
 pub struct NewPaper {
     pub arxiv_id: String,
     pub title: String,
@@ -43,12 +43,23 @@ pub struct NewPaper {
     pub body: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, utoipa::ToSchema)]
+pub struct NewPaperFull {
+    pub arxiv_id: String,
+    pub title: String,
+    pub description: String,
+    pub submission_date: chrono::NaiveDate,
+    pub body: String,
+    pub authors: Vec<NewAuthor>,
+    pub subjects: Vec<NewSubject>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize, utoipa::ToSchema)]
 pub struct NewAuthor {
     pub name: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Deserialize, utoipa::ToSchema)]
 pub struct NewSubject {
     pub name: String,
 }

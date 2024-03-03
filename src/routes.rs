@@ -1,5 +1,5 @@
 use crate::handlers::{archive, meta, tasks};
-use crate::models::{NewPaper, Paper};
+use crate::models::{NewAuthor, NewPaperFull, NewSubject, Paper};
 use actix_web::web;
 use utoipa::OpenApi;
 
@@ -14,7 +14,7 @@ use utoipa::OpenApi;
         tasks::get_status,
         tasks::post_day_as_task
     ),
-    components(schemas(NewPaper, Paper))
+    components(schemas(NewPaperFull, Paper, NewAuthor, NewSubject))
 )]
 struct ApiDoc;
 

@@ -10,6 +10,7 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[derive(Clone)]
 pub struct DBConnection {
     pool: sqlx::Pool<sqlx::Postgres>,
 }
@@ -21,14 +22,16 @@ impl DBConnection {
         })
     }
 
-    pub async fn get_all_papers(&mut self) -> Result<Vec<models::Paper>> {
+    #[allow(unused)]
+    pub async fn get_all_papers(&self) -> Result<Vec<models::Paper>> {
         sqlx::query_as!(models::Paper, "SELECT * FROM papers")
             .fetch_all(&self.pool)
             .await
             .map_err(|e| e.into())
     }
 
-    pub async fn count_papers(&mut self) -> Result<i64> {
+    #[allow(unused)]
+    pub async fn count_papers(&self) -> Result<i64> {
         sqlx::query_scalar!("SELECT COUNT(*) FROM papers")
             .fetch_one(&self.pool)
             .await
@@ -36,7 +39,8 @@ impl DBConnection {
             .map_err(|e| e.into())
     }
 
-    pub async fn get_paper(&mut self, desired_id: i32) -> Result<models::Paper> {
+    #[allow(unused)]
+    pub async fn get_paper(&self, desired_id: i32) -> Result<models::Paper> {
         sqlx::query_as!(
             models::Paper,
             "SELECT * FROM papers WHERE id = $1",
@@ -47,10 +51,8 @@ impl DBConnection {
         .map_err(|e| e.into())
     }
 
-    pub async fn get_paper_authors(
-        &mut self,
-        desired_paper_id: i32,
-    ) -> Result<Vec<models::Author>> {
+    #[allow(unused)]
+    pub async fn get_paper_authors(&self, desired_paper_id: i32) -> Result<Vec<models::Author>> {
         sqlx::query_as!(
             models::Author,
             "SELECT authors.id, authors.name
@@ -64,7 +66,8 @@ impl DBConnection {
         .map_err(|e| e.into())
     }
 
-    pub async fn paper_exists(&mut self, desired_arxiv_id: &str) -> Result<bool> {
+    #[allow(unused)]
+    pub async fn paper_exists(&self, desired_arxiv_id: &str) -> Result<bool> {
         sqlx::query_scalar!(
             "SELECT EXISTS(SELECT * FROM papers WHERE arxiv_id = $1)",
             desired_arxiv_id
@@ -144,7 +147,7 @@ impl DBConnection {
     }
 
     pub async fn set_paper_author(
-        &mut self,
+        &self,
         paper_id: models::Id,
         author_id: models::Id,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -167,7 +170,7 @@ impl DBConnection {
     }
 
     pub async fn set_paper_subject(
-        &mut self,
+        &self,
         paper_id: models::Id,
         subject_id: models::Id,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -189,7 +192,7 @@ impl DBConnection {
     }
 
     pub async fn insert_paper_full(
-        &mut self,
+        &self,
         paper: NewPaper,
         authors: Vec<NewAuthor>,
         subjects: Vec<NewSubject>,

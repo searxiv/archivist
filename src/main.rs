@@ -4,7 +4,7 @@ mod handlers;
 mod models;
 mod routes;
 
-use actix_web::{middleware::Logger, App, HttpServer};
+use actix_web::{middleware::Logger, web::Data, App, HttpServer};
 use config::Config;
 use figment::{providers::Env, Figment};
 
@@ -21,9 +21,15 @@ async fn main() -> anyhow::Result<()> {
     // Initialize logger
     env_logger::init_from_env(env_logger::Env::default().default_filter_or(config.log_level));
 
-    HttpServer::new(|| App::new().configure(routes::routes).wrap(Logger::default()))
-        .bind((config.addr, config.port))?
-        .run()
-        .await
-        .map_err(|e| e.into())
+    let db = db::DBConnection::new(&config.database_url).await?;
+    HttpServer::new(move || {
+        App::new()
+            .app_data(Data::new(db.clone()))
+            .configure(routes::routes)
+            .wrap(Logger::default())
+    })
+    .bind((config.addr, config.port))?
+    .run()
+    .await
+    .map_err(|e| e.into())
 }
