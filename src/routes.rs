@@ -1,19 +1,33 @@
-use actix_web::web;
-
 use crate::handlers::{archive, meta, tasks};
+use crate::models::{NewPaper, Paper};
+use actix_web::web;
+use utoipa::OpenApi;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        meta::ping,
+        archive::post_paper,
+        archive::get_status,
+        archive::get_papers_from_day,
+        tasks::get_task,
+        tasks::get_status,
+        tasks::post_day_as_task
+    ),
+    components(schemas(NewPaper, Paper))
+)]
+struct ApiDoc;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/ping").get(meta::ping))
+    cfg.service(meta::ping)
         .service(
-            web::scope("/archive")
-                .service(web::resource("/").post(archive::post_paper))
-                .service(web::resource("/status").get(archive::get_status))
-                .service(web::resource("/{year}/{month}/{day}").get(archive::get_papers_from_day)),
+            utoipa_rapidoc::RapiDoc::with_openapi("/api-docs/openapi.json", ApiDoc::openapi())
+                .path("/docs"),
         )
-        .service(
-            web::scope("/tasks")
-                .service(web::resource("/").get(tasks::get_task))
-                .service(web::resource("/status").get(tasks::get_status))
-                .service(web::resource("/{year}/{month}/{day}").post(tasks::post_day_as_task)),
-        );
+        .service(archive::post_paper)
+        .service(archive::get_status)
+        .service(archive::get_papers_from_day)
+        .service(tasks::get_task)
+        .service(tasks::get_status)
+        .service(tasks::post_day_as_task);
 }
