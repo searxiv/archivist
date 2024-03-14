@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize logger
     env_logger::init_from_env(env_logger::Env::default().default_filter_or(config.log_level));
 
-    let db = db::DBConnection::new(&config.database_url).await?;
+    let db = db::DBConnection::new(env!("DATABASE_URL")).await?;
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(db.clone()))

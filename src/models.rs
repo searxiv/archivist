@@ -1,6 +1,6 @@
 pub type Id = i32;
 
-#[derive(PartialEq, Debug, sqlx::FromRow, utoipa::ToSchema)]
+#[derive(PartialEq, Debug, serde::Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct Paper {
     pub id: Id,
     pub arxiv_id: String,
@@ -62,4 +62,9 @@ pub struct NewAuthor {
 #[derive(Clone, Debug, serde::Deserialize, utoipa::ToSchema)]
 pub struct NewSubject {
     pub name: String,
+}
+
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct ArchiveStats {
+    pub count: i64,
 }

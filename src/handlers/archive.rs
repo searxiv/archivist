@@ -1,26 +1,31 @@
 use crate::{
     db,
-    models::{NewPaper, NewPaperFull},
+    models::{ArchiveStats, NewPaper, NewPaperFull},
 };
 use actix_web::{
     get, post,
     web::{Data, Json, Path},
-    Responder,
+    HttpResponse, Responder, Result,
 };
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Get stats about archive")
+        (status = 200, description = "Get stats about archive", body = ArchiveStats)
     )
 )]
 #[get("/archive/status")]
-pub async fn get_status() -> impl Responder {
-    "get_status is not implemented"
+pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
+    let stats = ArchiveStats {
+        count: db.count_papers().await?,
+    };
+
+    Ok(Json(stats))
 }
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Get all paper submitted in this day", body = [Paper])
+        (status = 200, description = "Get all paper submitted in this day", body = [Paper]),
+        (status = 400, description = "Invalid date")
     ),
     params(
         ("year",),
@@ -29,8 +34,17 @@ pub async fn get_status() -> impl Responder {
     ),
 )]
 #[get("/archive/{year}/{month}/{day}")]
-pub async fn get_papers_from_day(_date: Path<(i32, i32, i32)>) -> impl Responder {
-    "get_papers_from_day is not implemented"
+pub async fn get_papers_from_day(
+    db: Data<db::DBConnection>,
+    date: Path<(i32, u32, u32)>,
+) -> Result<impl Responder> {
+    let (year, month, day) = date.into_inner();
+    // TODO: return 400 on incorrect date
+    let date = chrono::NaiveDate::from_ymd_opt(year, month, day).unwrap();
+
+    let papers = db.get_papers_by_date(date).await?;
+
+    Ok(Json(papers))
 }
 
 #[utoipa::path(
@@ -41,19 +55,21 @@ pub async fn get_papers_from_day(_date: Path<(i32, i32, i32)>) -> impl Responder
     )
 )]
 #[post("/archive")]
-pub async fn post_paper(db: Data<db::DBConnection>, paper: Json<NewPaperFull>) -> impl Responder {
+pub async fn post_paper(
+    db: Data<db::DBConnection>,
+    paper: Json<NewPaperFull>,
+) -> Result<impl Responder> {
+    let new_paper_full = paper.0;
     let new_paper = NewPaper {
-        arxiv_id: paper.0.arxiv_id,
-        title: paper.0.title,
-        description: paper.0.description,
-        submission_date: paper.0.submission_date,
-        body: paper.0.body,
+        arxiv_id: new_paper_full.arxiv_id,
+        title: new_paper_full.title,
+        description: new_paper_full.description,
+        submission_date: new_paper_full.submission_date,
+        body: new_paper_full.body,
     };
 
-    // TODO: handle case if paper already exists
-    db.insert_paper_full(new_paper, paper.0.authors, paper.0.subjects)
-        .await
-        .unwrap();
+    db.insert_paper_full(new_paper, new_paper_full.authors, new_paper_full.subjects)
+        .await?;
 
-    actix_web::HttpResponse::Created()
+    Ok(HttpResponse::Created())
 }

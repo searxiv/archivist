@@ -7,6 +7,7 @@ pub enum Error {
     #[error("database error")]
     Sqlx(#[from] sqlx::Error),
 }
+impl actix_web::error::ResponseError for Error {}
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -30,7 +31,6 @@ impl DBConnection {
             .map_err(|e| e.into())
     }
 
-    #[allow(unused)]
     pub async fn count_papers(&self) -> Result<i64> {
         sqlx::query_scalar!("SELECT COUNT(*) FROM papers")
             .fetch_one(&self.pool)
@@ -47,6 +47,17 @@ impl DBConnection {
             desired_id
         )
         .fetch_one(&self.pool)
+        .await
+        .map_err(|e| e.into())
+    }
+
+    pub async fn get_papers_by_date(&self, date: chrono::NaiveDate) -> Result<Vec<models::Paper>> {
+        sqlx::query_as!(
+            models::Paper,
+            "SELECT * FROM papers WHERE submission_date = $1",
+            date
+        )
+        .fetch_all(&self.pool)
         .await
         .map_err(|e| e.into())
     }
@@ -197,6 +208,14 @@ impl DBConnection {
         authors: Vec<NewAuthor>,
         subjects: Vec<NewSubject>,
     ) -> Result<()> {
+        if self.paper_exists(&paper.arxiv_id).await? {
+            log::warn!(
+                "DB: paper {:?} already exists in archive, skipping",
+                paper.arxiv_id
+            );
+            return Ok(());
+        }
+
         let mut tx = self.pool.begin().await?;
 
         let paper_id = self.insert_paper(paper, &mut tx).await?;
