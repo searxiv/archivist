@@ -4,25 +4,43 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
+    naersk = {
+      url = "github:nix-community/naersk";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils, naersk, rust-overlay }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        devShell = pkgs.mkShell {
-          packages = with pkgs; [
-            cargo
-            rustc
-            clippy
-            cargo-watch
-            rust-analyzer
-            rustfmt
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs { inherit system overlays; };
+        rustToolchain = pkgs.rust-bin.stable.latest.complete;
+        buildInputs = with pkgs; [
+          rustToolchain
+        ] ++ lib.optionals stdenv.isDarwin
+          [
+            libiconv
+            darwin.apple_sdk.frameworks.Foundation
           ];
+
+        naersk' = pkgs.callPackage naersk { };
+      in
+      rec {
+        packages.default = naersk'.buildPackage {
+          inherit buildInputs;
+          src = ./.;
         };
 
-        RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+        devShells.default = pkgs.mkShell { inherit buildInputs; };
       });
 }
