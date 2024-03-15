@@ -19,6 +19,7 @@ To start archivist and database use docker compose:
 ```sh
 $ docker compose up
 ```
+
 ## Available API
 
 You can explore everything archivist can and can't do via RapiDoc available at
