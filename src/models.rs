@@ -68,3 +68,31 @@ pub struct NewSubject {
 pub struct ArchiveStats {
     pub count: i64,
 }
+
+#[derive(Clone, Debug, serde::Serialize, sqlx::Type)]
+#[sqlx(type_name = "status", rename_all = "lowercase")]
+pub enum Status {
+    Idle,
+    Processing,
+    Done,
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct NewTask {
+    pub submission_date: chrono::NaiveDate,
+}
+
+#[derive(Clone, Debug, serde::Serialize)]
+pub struct Task {
+    pub submission_date: chrono::NaiveDate,
+    pub status: Status,
+    pub processing_start: Option<chrono::NaiveDateTime>,
+    pub processing_end: Option<chrono::NaiveDateTime>,
+}
+
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct TasksStats {
+    pub idle: i64,
+    pub processing: i64,
+    pub done: i64,
+}

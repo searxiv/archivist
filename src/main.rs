@@ -4,7 +4,11 @@ mod handlers;
 mod models;
 mod routes;
 
-use actix_web::{middleware::Logger, web::Data, App, HttpServer};
+use actix_web::{
+    middleware::{Compress, Logger},
+    web::Data,
+    App, HttpServer,
+};
 use config::Config;
 use figment::{providers::Env, Figment};
 
@@ -24,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
     let db = db::DBConnection::new(&std::env::var("DATABASE_URL")?).await?;
     HttpServer::new(move || {
         App::new()
+            .wrap(Compress::default())
             .app_data(Data::new(db.clone()))
             .configure(routes::routes)
             .wrap(Logger::default())

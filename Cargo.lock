@@ -341,6 +341,7 @@ dependencies = [
  "figment",
  "log",
  "serde",
+ "serde_json",
  "sqlx",
  "thiserror",
  "utoipa",

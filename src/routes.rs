@@ -19,7 +19,9 @@ use utoipa::OpenApi;
         models::Paper,
         models::NewAuthor,
         models::NewSubject,
-        models::ArchiveStats
+        models::ArchiveStats,
+        models::NewTask,
+        models::TasksStats,
     ))
 )]
 struct ApiDoc;
