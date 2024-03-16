@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO paper_author (paper_id, author_id)\n                VALUES ($1, $2)",
+  "query": "INSERT INTO paper_author (paper_id, author_id)\n             VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "eb11a949de14edb6e6e26efa40e316c4d5159d73d3e9a61d3d995d7ce935be0c"
+  "hash": "30372ae94ec59f0d58ce556f7edcc137713c71601f2f0678c7bd7ecddb0d41e2"
 }

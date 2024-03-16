@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT submission_date, status as \"status: _\", processing_start, processing_end\n             FROM tasks WHERE status = $1\n             LIMIT 1\n             FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "submission_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 1,
+        "name": "status: _",
+        "type_info": {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "processing_start",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 3,
+        "name": "processing_end",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "08c29d0c3d78abf4eb62c6e0442db5432e9de1b8f43bff497046a9a76c3809f6"
+}

@@ -20,13 +20,13 @@
       },
       {
         "ordinal": 3,
-        "name": "description",
-        "type_info": "Text"
+        "name": "submission_date",
+        "type_info": "Date"
       },
       {
         "ordinal": 4,
-        "name": "submission_date",
-        "type_info": "Date"
+        "name": "description",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,

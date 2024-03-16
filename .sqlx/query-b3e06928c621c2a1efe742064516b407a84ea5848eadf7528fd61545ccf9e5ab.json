@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO papers (arxiv_id, title, description, submission_date, body)\n                VALUES ($1, $2, $3, $4, $5)\n                RETURNING id",
+  "query": "INSERT INTO papers (arxiv_id, title, description, submission_date, body)\n             VALUES ($1, $2, $3, $4, $5)\n             RETURNING id",
   "describe": {
     "columns": [
       {
@@ -22,5 +22,5 @@
       false
     ]
   },
-  "hash": "f2ce08057f1e5a493e7f107fd69355961b898550122afc996ac62cf9d9f9962d"
+  "hash": "b3e06928c621c2a1efe742064516b407a84ea5848eadf7528fd61545ccf9e5ab"
 }

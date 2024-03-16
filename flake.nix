@@ -1,6 +1,4 @@
 {
-  description = "searXiv.archivist rust development environment";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
@@ -27,6 +25,7 @@
         rustToolchain = pkgs.rust-bin.stable.latest.complete;
         buildInputs = with pkgs; [
           rustToolchain
+          sqlx-cli
         ] ++ lib.optionals stdenv.isDarwin
           [
             libiconv

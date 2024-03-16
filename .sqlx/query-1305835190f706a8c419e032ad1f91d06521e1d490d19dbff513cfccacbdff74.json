@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO tasks (submission_date, status, processing_start, processing_end)\n             VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Date",
+        {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        },
+        "Timestamp",
+        "Timestamp"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1305835190f706a8c419e032ad1f91d06521e1d490d19dbff513cfccacbdff74"
+}

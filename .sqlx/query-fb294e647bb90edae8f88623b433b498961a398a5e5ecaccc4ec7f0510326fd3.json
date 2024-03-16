@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tasks\n                 SET status = $1, processing_start = $2\n                 WHERE submission_date = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        },
+        "Timestamp",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fb294e647bb90edae8f88623b433b498961a398a5e5ecaccc4ec7f0510326fd3"
+}

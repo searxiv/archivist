@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM papers WHERE submission_date = $1",
+  "query": "SELECT * FROM papers\n             WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -20,13 +20,13 @@
       },
       {
         "ordinal": 3,
-        "name": "description",
-        "type_info": "Text"
+        "name": "submission_date",
+        "type_info": "Date"
       },
       {
         "ordinal": 4,
-        "name": "submission_date",
-        "type_info": "Date"
+        "name": "description",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
@@ -36,7 +36,7 @@
     ],
     "parameters": {
       "Left": [
-        "Date"
+        "Int4"
       ]
     },
     "nullable": [
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "e4d8c9b699759cb7d2136c70ae74cecad0bce8ae9eec1f1bf96a119497ca21c7"
+  "hash": "47a516f8abcd8cba8da050409a861c22f83e412d376b50b37046fd8e9bf89b32"
 }
