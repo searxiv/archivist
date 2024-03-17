@@ -337,4 +337,24 @@ impl DBConnection {
             done,
         })
     }
+
+    pub async fn revert_long_running_tasks(&self, threshold_seconds: u64) -> Result<()> {
+        let threshold = std::time::Duration::from_secs(threshold_seconds);
+        let threshold = sqlx::postgres::types::PgInterval::try_from(threshold).unwrap();
+
+        sqlx::query!(
+            "UPDATE tasks
+             SET status = $1, processing_start = $2
+             WHERE status = $3
+             AND (current_timestamp - processing_start > $4 OR processing_start IS NULL)",
+            models::Status::Idle as models::Status,
+            None as Option<chrono::NaiveDateTime>,
+            models::Status::Processing as models::Status,
+            threshold
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
 }

@@ -1,0 +1,39 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tasks\n             SET status = $1, processing_start = $2\n             WHERE status = $3\n             AND (current_timestamp - processing_start > $4 OR processing_start IS NULL)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        },
+        "Timestamp",
+        {
+          "Custom": {
+            "name": "status",
+            "kind": {
+              "Enum": [
+                "idle",
+                "processing",
+                "done"
+              ]
+            }
+          }
+        },
+        "Interval"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a5a7e4d3801395de70e751a49a2e278bb27b36a1949aef053bc85b28f55564ae"
+}
