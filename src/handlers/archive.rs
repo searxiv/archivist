@@ -1,11 +1,8 @@
-use crate::{
-    db,
-    models::{ArchiveStats, NewPaper, NewPaperFull},
-};
+use crate::{db, models::ArchiveStats};
 use actix_web::{
-    get, post,
+    get,
     web::{Data, Json, Path},
-    HttpResponse, Responder, Result,
+    Responder, Result,
 };
 
 #[utoipa::path(
@@ -45,31 +42,4 @@ pub async fn get_papers_from_day(
     let papers = db.get_papers_by_date(date).await?;
 
     Ok(Json(papers))
-}
-
-#[utoipa::path(
-    request_body = NewPaperFull,
-    responses(
-        (status = 201, description = "Add new paper into archive"),
-        (status = 400, description = "Body cannot be deserialized")
-    )
-)]
-#[post("/archive")]
-pub async fn post_paper(
-    db: Data<db::DBConnection>,
-    paper: Json<NewPaperFull>,
-) -> Result<impl Responder> {
-    let new_paper_full = paper.0;
-    let new_paper = NewPaper {
-        arxiv_id: new_paper_full.arxiv_id,
-        title: new_paper_full.title,
-        description: new_paper_full.description,
-        submission_date: new_paper_full.submission_date,
-        body: new_paper_full.body,
-    };
-
-    db.insert_paper_full(new_paper, new_paper_full.authors, new_paper_full.subjects)
-        .await?;
-
-    Ok(HttpResponse::Created())
 }

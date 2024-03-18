@@ -1,6 +1,6 @@
 use sqlx::postgres::PgPoolOptions;
 
-use crate::models::{self, NewAuthor, NewPaper, NewSubject};
+use crate::models::{self, NewAuthor, NewPaper, NewPaperFull, NewSubject};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -207,36 +207,43 @@ impl DBConnection {
         Ok(())
     }
 
-    pub async fn insert_paper_full(
+    pub async fn insert_papers_full(
         &self,
-        paper: NewPaper,
-        authors: Vec<NewAuthor>,
-        subjects: Vec<NewSubject>,
+        papers_full: Vec<NewPaperFull>,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<()> {
-        if self.paper_exists(&paper.arxiv_id).await? {
-            log::warn!(
-                "DB: paper {:?} already exists in archive, skipping",
-                paper.arxiv_id
-            );
-            return Ok(());
+        for paper_full in papers_full {
+            if self.paper_exists(&paper_full.arxiv_id).await? {
+                log::warn!(
+                    "DB: paper {:?} already exists in archive, skipping",
+                    paper_full.arxiv_id
+                );
+                return Ok(());
+            }
+
+            let paper = NewPaper {
+                arxiv_id: paper_full.arxiv_id,
+                title: paper_full.title,
+                description: paper_full.description,
+                submission_date: paper_full.submission_date,
+                body: paper_full.body,
+            };
+
+            let paper_id = self.insert_paper(paper, &mut *tx).await?;
+
+            for author in paper_full.authors {
+                let author_id = self.insert_author(author, &mut *tx).await?;
+                self.set_paper_author(paper_id, author_id, &mut *tx).await?;
+            }
+
+            for subject in paper_full.subjects {
+                let subject_id = self.insert_subject(subject, &mut *tx).await?;
+                self.set_paper_subject(paper_id, subject_id, &mut *tx)
+                    .await?;
+            }
         }
 
-        let mut tx = self.pool.begin().await?;
-
-        let paper_id = self.insert_paper(paper, &mut tx).await?;
-
-        for author in authors {
-            let author_id = self.insert_author(author, &mut tx).await?;
-            self.set_paper_author(paper_id, author_id, &mut tx).await?;
-        }
-
-        for subject in subjects {
-            let subject_id = self.insert_subject(subject, &mut tx).await?;
-            self.set_paper_subject(paper_id, subject_id, &mut tx)
-                .await?;
-        }
-
-        Ok(tx.commit().await?)
+        Ok(())
     }
 
     pub async fn get_next_task(&self) -> Result<Option<models::Task>> {
@@ -336,6 +343,27 @@ impl DBConnection {
             processing,
             done,
         })
+    }
+
+    pub async fn submit_task(&self, submission: models::TaskSubmission) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+
+        self.insert_papers_full(submission.papers, &mut tx).await?;
+
+        sqlx::query!(
+            "UPDATE tasks
+             SET status = $1, processing_end = $2
+             WHERE submission_date = $3",
+            models::Status::Done as models::Status,
+            chrono::Utc::now().naive_utc(),
+            submission.submission_date,
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(())
     }
 
     pub async fn revert_long_running_tasks(&self, threshold_seconds: u64) -> Result<()> {

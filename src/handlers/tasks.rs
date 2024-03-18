@@ -32,6 +32,23 @@ pub async fn get_task(db: Data<db::DBConnection>) -> Result<HttpResponse<BoxBody
 }
 
 #[utoipa::path(
+    request_body = TaskSubmission,
+    responses(
+        (status = 201, description = "Task submitted successfully"),
+        (status = 400, description = "Invalid task result")
+    )
+)]
+#[post("/tasks")]
+pub async fn submit_task(
+    db: Data<db::DBConnection>,
+    submission: Json<models::TaskSubmission>,
+) -> Result<impl Responder> {
+    db.submit_task(submission.0).await?;
+
+    Ok(HttpResponse::Created())
+}
+
+#[utoipa::path(
     responses(
         (status = 200, description = "Get info about task queue", body = TasksStats)
     )
