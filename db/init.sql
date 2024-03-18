@@ -38,6 +38,6 @@ CREATE TYPE status AS ENUM ('idle', 'processing', 'done');
 CREATE TABLE tasks (
   submission_date DATE PRIMARY KEY,
   status status NOT NULL,
-  processing_start timestamp
+  processing_start timestamp,
   processing_end timestamp
 );
