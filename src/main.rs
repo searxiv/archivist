@@ -6,7 +6,7 @@ mod routes;
 
 use actix_web::{
     middleware::{Compress, Logger},
-    web::Data,
+    web::{Data, JsonConfig},
     App, HttpServer,
 };
 use clokwerk::TimeUnits;
@@ -54,6 +54,7 @@ async fn main() -> anyhow::Result<()> {
         App::new()
             .wrap(Compress::default())
             .app_data(Data::new((*db).clone()))
+            .app_data(JsonConfig::default().limit(1024 * 1024 * 1024))
             .configure(routes::routes)
             .wrap(Logger::default())
     })
