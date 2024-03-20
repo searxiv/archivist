@@ -15,8 +15,8 @@ use figment::{providers::Env, Figment};
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-    // Load environment variables from .env
-    dotenvy::dotenv()?;
+    // Load environment variables from .env if it exists
+    _ = dotenvy::dotenv();
 
     // Build config by merging environment variables with Config::default()
     let config: Config = Figment::from(Config::default())

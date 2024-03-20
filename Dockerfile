@@ -17,7 +17,5 @@ FROM debian:bookworm-slim AS runtime
 
 COPY --from=builder /searxiv/target/release/archivist /archivist
 
-COPY .env /.env
-
 ENTRYPOINT ["/archivist"]
 
