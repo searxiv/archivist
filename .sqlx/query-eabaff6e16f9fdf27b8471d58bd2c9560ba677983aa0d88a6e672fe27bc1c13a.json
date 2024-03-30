@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT pg_database_size('searxiv')",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "pg_database_size",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "eabaff6e16f9fdf27b8471d58bd2c9560ba677983aa0d88a6e672fe27bc1c13a"
+}

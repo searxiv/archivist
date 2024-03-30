@@ -66,7 +66,8 @@ pub struct NewSubject {
 
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct ArchiveStats {
-    pub count: i64,
+    pub paper_count: i64,
+    pub db_size_mb: f64,
 }
 
 #[derive(Clone, Debug, serde::Serialize, sqlx::Type)]

@@ -13,7 +13,8 @@ use actix_web::{
 #[get("/archive/status")]
 pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
     let stats = ArchiveStats {
-        count: db.count_papers().await?,
+        paper_count: db.count_papers().await?,
+        db_size_mb: db.get_db_size_mb().await?,
     };
 
     Ok(Json(stats))

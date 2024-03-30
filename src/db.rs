@@ -385,4 +385,14 @@ impl DBConnection {
 
         Ok(())
     }
+
+    pub async fn get_db_size_mb(&self) -> Result<f64> {
+        let size_bytes = sqlx::query_scalar!("SELECT pg_database_size('searxiv')")
+            .fetch_one(&self.pool)
+            .await?
+            .unwrap(); // NOTE(mchernigin): I am sure it returns a number
+
+        let size_mb = size_bytes as f64 / 1024. / 1024.;
+        Ok(size_mb)
+    }
 }
