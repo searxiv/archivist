@@ -37,11 +37,8 @@ pub async fn get_papers_from_day(
     date: Path<(i32, u32, u32)>,
 ) -> Result<HttpResponse> {
     let (year, month, day) = date.into_inner();
-    let date = match chrono::NaiveDate::from_ymd_opt(year, month, day) {
-        Some(d) => d,
-        None => {
-            return Ok(HttpResponse::BadRequest().into());
-        }
+    let Some(date) = chrono::NaiveDate::from_ymd_opt(year, month, day) else {
+        return Ok(HttpResponse::BadRequest().into());
     };
 
     let papers = db.get_papers_by_date(date).await?;

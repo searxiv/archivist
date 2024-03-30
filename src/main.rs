@@ -1,5 +1,6 @@
 mod config;
 mod db;
+mod file_upload;
 mod handlers;
 mod models;
 mod routes;
