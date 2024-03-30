@@ -12,6 +12,8 @@ use utoipa::OpenApi;
         tasks::get_task,
         tasks::get_status,
         tasks::post_day_as_task,
+        tasks::post_month_as_task,
+        tasks::post_year_as_task,
         tasks::submit_task,
     ),
     components(schemas(
@@ -42,5 +44,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         .service(tasks::get_task)
         .service(tasks::get_status)
         .service(tasks::post_day_as_task)
+        .service(tasks::post_month_as_task)
+        .service(tasks::post_year_as_task)
         .service(tasks::submit_task);
 }

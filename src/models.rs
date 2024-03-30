@@ -77,6 +77,12 @@ pub enum Status {
     Done,
 }
 
+impl sqlx::postgres::PgHasArrayType for Status {
+    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("_status")
+    }
+}
+
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct NewTask {
     pub submission_date: chrono::NaiveDate,

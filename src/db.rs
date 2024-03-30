@@ -282,23 +282,22 @@ impl DBConnection {
         Ok(res)
     }
 
-    pub async fn insert_task(&self, new_task: models::NewTask) -> Result<()> {
-        log::trace!("DB: inserting new task {:?}", new_task.submission_date);
+    pub async fn insert_task(&self, new_tasks: Vec<models::NewTask>) -> Result<()> {
+        log::trace!("DB: inserting new tasks ({})", new_tasks.len());
 
-        let task = models::Task {
-            submission_date: new_task.submission_date,
-            status: models::Status::Idle,
-            processing_start: None,
-            processing_end: None,
-        };
+        let submission_dates = new_tasks
+            .into_iter()
+            .map(|models::NewTask { submission_date }| submission_date)
+            .collect::<Vec<_>>();
+        let statuses = vec![models::Status::Idle; submission_dates.len()];
 
         sqlx::query!(
-            "INSERT INTO tasks (submission_date, status, processing_start, processing_end)
-             VALUES ($1, $2, $3, $4)",
-            task.submission_date,
-            task.status as models::Status,
-            task.processing_start,
-            task.processing_start,
+            r#"INSERT INTO tasks (submission_date, status)
+               SELECT *
+               FROM UNNEST ($1::date[], $2::status[])
+               ON CONFLICT (submission_date) DO NOTHING"#,
+            &submission_dates[..],
+            &statuses[..] as &[models::Status],
         )
         .execute(&self.pool)
         .await?;
@@ -370,6 +369,7 @@ impl DBConnection {
         let threshold = std::time::Duration::from_secs(threshold_seconds);
         let threshold = sqlx::postgres::types::PgInterval::try_from(threshold).unwrap();
 
+        // TODO:: Use SELECT FOR UPDATE
         sqlx::query!(
             "UPDATE tasks
              SET status = $1, processing_start = $2

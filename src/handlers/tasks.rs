@@ -7,6 +7,7 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse, Responder, Result,
 };
+use chrono::Datelike;
 
 #[utoipa::path(
     responses(
@@ -73,14 +74,99 @@ pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
 pub async fn post_day_as_task(
     db: Data<db::DBConnection>,
     date: Path<(i32, u32, u32)>,
-) -> Result<HttpResponse<BoxBody>> {
+) -> Result<HttpResponse> {
     let (year, month, day) = date.into_inner();
 
-    // TODO: return 400 on incorrect date
-    let submission_date = chrono::NaiveDate::from_ymd_opt(year, month, day).unwrap();
+    let submission_date = match chrono::NaiveDate::from_ymd_opt(year, month, day) {
+        Some(d) => d,
+        None => {
+            return Ok(HttpResponse::BadRequest().into());
+        }
+    };
     let new_task = models::NewTask { submission_date };
 
-    db.insert_task(new_task).await?;
+    db.insert_task(vec![new_task]).await?;
+
+    Ok(HttpResponse::Created().into())
+}
+
+#[utoipa::path(
+    responses(
+        (status = 201, description = "Create new tasks to scrape specific month"),
+        (status = 400, description = "Invalid date")
+    ),
+    params(
+        ("year",),
+        ("month",),
+    ),
+)]
+#[post("/tasks/{year}/{month}")]
+pub async fn post_month_as_task(
+    db: Data<db::DBConnection>,
+    date: Path<(i32, u32)>,
+) -> Result<HttpResponse<BoxBody>> {
+    let (year, month) = date.into_inner();
+
+    let mut tasks = Vec::new();
+
+    let iter_days = match chrono::NaiveDate::from_ymd_opt(year, month, 1) {
+        Some(d) => d.iter_days(),
+        None => {
+            return Ok(HttpResponse::BadRequest().into());
+        }
+    };
+
+    for day in iter_days {
+        if day.month() != month {
+            break;
+        }
+        let new_task = models::NewTask {
+            submission_date: day,
+        };
+        tasks.push(new_task);
+    }
+
+    db.insert_task(tasks).await?;
+
+    Ok(HttpResponse::Created().finish())
+}
+
+#[utoipa::path(
+    responses(
+        (status = 201, description = "Create new tasks to scrape specific year"),
+        (status = 400, description = "Invalid date")
+    ),
+    params(
+        ("year",),
+    ),
+)]
+#[post("/tasks/{year}")]
+pub async fn post_year_as_task(
+    db: Data<db::DBConnection>,
+    date: Path<i32>,
+) -> Result<HttpResponse<BoxBody>> {
+    let year = date.into_inner();
+
+    let mut tasks = Vec::new();
+
+    let iter_days = match chrono::NaiveDate::from_ymd_opt(year, 1, 1) {
+        Some(d) => d.iter_days(),
+        None => {
+            return Ok(HttpResponse::BadRequest().into());
+        }
+    };
+
+    for day in iter_days {
+        if day.year() != year {
+            break;
+        }
+        let new_task = models::NewTask {
+            submission_date: day,
+        };
+        tasks.push(new_task);
+    }
+
+    db.insert_task(tasks).await?;
 
     Ok(HttpResponse::Created().finish())
 }

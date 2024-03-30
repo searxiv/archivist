@@ -2,7 +2,7 @@ use crate::{db, models::ArchiveStats};
 use actix_web::{
     get,
     web::{Data, Json, Path},
-    Responder, Result,
+    HttpResponse, Responder, Result,
 };
 
 #[utoipa::path(
@@ -34,12 +34,16 @@ pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
 pub async fn get_papers_from_day(
     db: Data<db::DBConnection>,
     date: Path<(i32, u32, u32)>,
-) -> Result<impl Responder> {
+) -> Result<HttpResponse> {
     let (year, month, day) = date.into_inner();
-    // TODO: return 400 on incorrect date
-    let date = chrono::NaiveDate::from_ymd_opt(year, month, day).unwrap();
+    let date = match chrono::NaiveDate::from_ymd_opt(year, month, day) {
+        Some(d) => d,
+        None => {
+            return Ok(HttpResponse::BadRequest().into());
+        }
+    };
 
     let papers = db.get_papers_by_date(date).await?;
 
-    Ok(Json(papers))
+    Ok(HttpResponse::Ok().json(papers))
 }
