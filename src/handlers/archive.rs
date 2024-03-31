@@ -1,8 +1,8 @@
 use crate::{db, models::ArchiveStats};
 use actix_web::{
     get,
-    web::{Data, Json, Path},
-    HttpResponse, Responder, Result,
+    web::{Data, Path},
+    HttpResponse, Result,
 };
 
 #[utoipa::path(
@@ -11,13 +11,13 @@ use actix_web::{
     )
 )]
 #[get("/archive/status")]
-pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
+pub async fn get_status(db: Data<db::DBConnection>) -> Result<HttpResponse> {
     let stats = ArchiveStats {
         paper_count: db.count_papers().await?,
         db_size_mb: db.get_db_size_mb().await?,
     };
 
-    Ok(Json(stats))
+    Ok(HttpResponse::Ok().json(stats))
 }
 
 #[utoipa::path(

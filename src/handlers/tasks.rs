@@ -1,11 +1,10 @@
 use crate::{db, models};
 use actix_web::{
-    body::BoxBody,
     get,
     http::header::ContentType,
     post,
     web::{Data, Json, Path},
-    HttpResponse, Responder, Result,
+    HttpResponse, Result,
 };
 use chrono::Datelike;
 
@@ -16,7 +15,7 @@ use chrono::Datelike;
     )
 )]
 #[get("/tasks")]
-pub async fn get_task(db: Data<db::DBConnection>) -> Result<HttpResponse<BoxBody>> {
+pub async fn get_task(db: Data<db::DBConnection>) -> Result<HttpResponse> {
     match db.get_next_task().await? {
         Some(task) => {
             let task = models::NewTask {
@@ -28,7 +27,7 @@ pub async fn get_task(db: Data<db::DBConnection>) -> Result<HttpResponse<BoxBody
                 .content_type(ContentType::json())
                 .body(task))
         }
-        None => Ok(HttpResponse::NotFound().finish()),
+        None => Ok(HttpResponse::NotFound().body("No tasks available")),
     }
 }
 
@@ -43,10 +42,10 @@ pub async fn get_task(db: Data<db::DBConnection>) -> Result<HttpResponse<BoxBody
 pub async fn submit_task(
     db: Data<db::DBConnection>,
     submission: Json<models::TaskSubmission>,
-) -> Result<impl Responder> {
+) -> Result<HttpResponse> {
     db.submit_task(submission.0).await?;
 
-    Ok(HttpResponse::Created())
+    Ok(HttpResponse::Created().into())
 }
 
 #[utoipa::path(
@@ -54,9 +53,11 @@ pub async fn submit_task(
         (status = 200, description = "Get info about task queue", body = TasksStats)
     )
 )]
-#[get("/tasks/status")]
-pub async fn get_status(db: Data<db::DBConnection>) -> Result<impl Responder> {
-    Ok(Json(db.get_tasks_stats().await?))
+#[get("/tasks/stats")]
+pub async fn get_stats(db: Data<db::DBConnection>) -> Result<HttpResponse> {
+    let stats = db.get_tasks_stats().await?;
+
+    Ok(HttpResponse::Ok().json(stats))
 }
 
 #[utoipa::path(
@@ -104,7 +105,7 @@ pub async fn post_day_as_task(
 pub async fn post_month_as_task(
     db: Data<db::DBConnection>,
     date: Path<(i32, u32)>,
-) -> Result<HttpResponse<BoxBody>> {
+) -> Result<HttpResponse> {
     let (year, month) = date.into_inner();
 
     let mut tasks = Vec::new();
@@ -112,7 +113,7 @@ pub async fn post_month_as_task(
     let iter_days = match chrono::NaiveDate::from_ymd_opt(year, month, 1) {
         Some(d) => d.iter_days(),
         None => {
-            return Ok(HttpResponse::BadRequest().into());
+            return Ok(HttpResponse::BadRequest().body("Invalid date"));
         }
     };
 
@@ -128,7 +129,7 @@ pub async fn post_month_as_task(
 
     db.insert_task(tasks).await?;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(HttpResponse::Created().into())
 }
 
 #[utoipa::path(
@@ -144,7 +145,7 @@ pub async fn post_month_as_task(
 pub async fn post_year_as_task(
     db: Data<db::DBConnection>,
     date: Path<i32>,
-) -> Result<HttpResponse<BoxBody>> {
+) -> Result<HttpResponse> {
     let year = date.into_inner();
 
     let mut tasks = Vec::new();
@@ -152,7 +153,7 @@ pub async fn post_year_as_task(
     let iter_days = match chrono::NaiveDate::from_ymd_opt(year, 1, 1) {
         Some(d) => d.iter_days(),
         None => {
-            return Ok(HttpResponse::BadRequest().into());
+            return Ok(HttpResponse::BadRequest().body("Invalid date"));
         }
     };
 
@@ -168,5 +169,5 @@ pub async fn post_year_as_task(
 
     db.insert_task(tasks).await?;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(HttpResponse::Created().into())
 }

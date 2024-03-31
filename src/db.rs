@@ -32,11 +32,12 @@ impl DBConnection {
     }
 
     pub async fn count_papers(&self) -> Result<i64> {
-        sqlx::query_scalar!("SELECT COUNT(*) FROM papers")
+        let count = sqlx::query_scalar!("SELECT COUNT(*) FROM papers")
             .fetch_one(&self.pool)
-            .await
-            .map(|r| r.unwrap()) // TODO: not pretty
-            .map_err(|e| e.into())
+            .await?
+            .unwrap(); // NOTE(mchernigin): I am sure it returns a number
+
+        Ok(count)
     }
 
     #[allow(unused)]
@@ -81,14 +82,15 @@ impl DBConnection {
 
     #[allow(unused)]
     pub async fn paper_exists(&self, desired_arxiv_id: &str) -> Result<bool> {
-        sqlx::query_scalar!(
+        let exists = sqlx::query_scalar!(
             "SELECT EXISTS(SELECT * FROM papers WHERE arxiv_id = $1)",
             desired_arxiv_id
         )
         .fetch_one(&self.pool)
-        .await
-        .map(|r| r.unwrap())
-        .map_err(|e| e.into())
+        .await?
+        .unwrap(); // NOTE(mchernigin): I am sure it returns a bool
+
+        Ok(exists)
     }
 
     pub async fn insert_paper(
@@ -315,7 +317,7 @@ impl DBConnection {
         )
         .fetch_one(&mut *tx)
         .await?
-        .unwrap();
+        .unwrap(); // NOTE(mchernigin): I am sure it returns a number
 
         let processing = sqlx::query_scalar!(
             "SELECT COUNT(*) FROM tasks
@@ -324,7 +326,7 @@ impl DBConnection {
         )
         .fetch_one(&mut *tx)
         .await?
-        .unwrap();
+        .unwrap(); // NOTE(mchernigin): I am sure it returns a number
 
         let done = sqlx::query_scalar!(
             "SELECT COUNT(*) FROM tasks
@@ -333,7 +335,7 @@ impl DBConnection {
         )
         .fetch_one(&mut *tx)
         .await?
-        .unwrap();
+        .unwrap(); // NOTE(mchernigin): I am sure it returns a number
 
         tx.commit().await?;
 
