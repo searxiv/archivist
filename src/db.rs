@@ -4,7 +4,7 @@ use crate::models::{self, NewAuthor, NewPaper, NewPaperFull, NewSubject};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("database error")]
+    #[error("database error: {0}")]
     Sqlx(#[from] sqlx::Error),
 }
 impl actix_web::error::ResponseError for Error {}
@@ -99,15 +99,23 @@ impl DBConnection {
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<models::Id> {
         log::trace!("DB: inserting new paper {:?}", new_paper.arxiv_id);
-        Ok(sqlx::query_scalar!(
+        sqlx::query!(
             "INSERT INTO papers (arxiv_id, title, description, submission_date, body)
              VALUES ($1, $2, $3, $4, $5)
-             RETURNING id",
+             ON CONFLICT (arxiv_id) DO NOTHING",
             new_paper.arxiv_id,
             new_paper.title,
             new_paper.description,
             new_paper.submission_date,
             new_paper.body,
+        )
+        .execute(&mut **tx)
+        .await?;
+
+        Ok(sqlx::query_scalar!(
+            "SELECT papers.id FROM papers
+             WHERE arxiv_id = $1",
+            new_paper.arxiv_id
         )
         .fetch_one(&mut **tx)
         .await?)
@@ -176,7 +184,8 @@ impl DBConnection {
         );
         sqlx::query!(
             "INSERT INTO paper_author (paper_id, author_id)
-             VALUES ($1, $2)",
+             VALUES ($1, $2)
+             ON CONFLICT ON CONSTRAINT paper_author_pkey DO NOTHING",
             paper_id,
             author_id
         )
@@ -199,7 +208,8 @@ impl DBConnection {
         );
         sqlx::query!(
             "INSERT INTO paper_subject (paper_id, subject_id)
-             VALUES ($1, $2)",
+             VALUES ($1, $2)
+             ON CONFLICT ON CONSTRAINT paper_subject_pkey DO NOTHING",
             paper_id,
             subject_id,
         )

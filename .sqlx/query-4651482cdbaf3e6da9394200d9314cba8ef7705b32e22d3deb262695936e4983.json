@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO papers (arxiv_id, title, description, submission_date, body)\n             VALUES ($1, $2, $3, $4, $5)\n             ON CONFLICT (arxiv_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Date",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4651482cdbaf3e6da9394200d9314cba8ef7705b32e22d3deb262695936e4983"
+}

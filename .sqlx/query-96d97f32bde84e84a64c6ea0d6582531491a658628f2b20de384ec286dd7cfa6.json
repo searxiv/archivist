@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO paper_subject (paper_id, subject_id)\n             VALUES ($1, $2)\n             ON CONFLICT ON CONSTRAINT paper_subject_pkey DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "96d97f32bde84e84a64c6ea0d6582531491a658628f2b20de384ec286dd7cfa6"
+}
