@@ -6,7 +6,7 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        archive::get_status,
+        archive::get_stats,
         archive::get_papers_from_day,
         tasks::get_task,
         tasks::get_stats,
@@ -37,7 +37,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         utoipa_rapidoc::RapiDoc::with_openapi("/api-docs/openapi.json", ApiDoc::openapi())
             .path("/docs"),
     )
-    .service(archive::get_status)
+    .service(archive::get_stats)
     .service(archive::get_papers_from_day)
     .service(tasks::get_task)
     .service(tasks::get_stats)
