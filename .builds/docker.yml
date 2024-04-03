@@ -1,0 +1,28 @@
+image: archlinux
+packages:
+  - docker
+  - docker-buildx
+secrets:
+  - eea12303-b4e8-4633-b668-84e673268430
+tasks:
+  - setup: |
+      sudo systemctl enable --now docker
+      cat ~/.dockerhub_token | docker login -u mchernigin --password-stdin
+  - build: |
+      cd searxiv-archivist
+      docker buildx build -t searxiv-archivist-cur .
+  - push: |
+      cd searxiv-archivist
+      git fetch
+      [ "$(git rev-parse HEAD)" == "$(git rev-parse origin/main)" ] \
+        && docker tag searxiv-archivist-cur mchernigin/searxiv-archivist:latest \
+        && docker push mchernigin/searxiv-archivist:latest
+      [ "$(git describe --exact-match)" != "" ] \
+        && docker tag searxiv-archivist-cur mchernigin/searxiv-archivist:$(git describe --exact-match) \
+        && docker push mchernigin/searxiv-archivist:$(git describe --exact-match) \
+        || echo "Not pushing tagged version"
+triggers:
+  - action: email
+    condition: failure
+    to: Michael Chernigin <michaelchernigin@gmail.com>
+

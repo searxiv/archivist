@@ -1,5 +1,7 @@
 # SearXiv: archivist
 
+[![builds.sr.ht status](https://builds.sr.ht/~mchernigin/searxiv-archivist.svg)](https://builds.sr.ht/~mchernigin/searxiv-archivist?)
+
 This module orchestrates scraping process and acts as a data holder. Only
 archivist has direct access to database. It is archivist's responsibly for
 building index of papers from https://arxiv.org.
